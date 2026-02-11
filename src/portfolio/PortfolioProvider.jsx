@@ -5,13 +5,15 @@ import { PortfolioContext, reducer } from "./portfolioStore";
 export function PortfolioProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, { holdings: [] });
 
+  console.log("😂😂",API)
+
   // 1️⃣ FETCH DATA FROM BACKEND
   useEffect(() => {
     fetchHoldings();
   }, []);
 
   async function fetchHoldings() {
-    const res = await API.get("/portfolio");
+    const res = await API.get("/api/portfolio");
     dispatch({ type: "SET_HOLDINGS", payload: res.data.data });
   }
 
@@ -19,7 +21,7 @@ export function PortfolioProvider({ children }) {
     return {
       // 2️⃣ ADD HOLDING
       async addHolding(input) {
-        const res = await API.post("/portfolio", {
+        const res = await API.post("/api/portfolio", {
           assetType: input.type,
           symbol: input.name,
           quantity: Number(input.quantity),
@@ -31,7 +33,7 @@ export function PortfolioProvider({ children }) {
 
       // 3️⃣ REMOVE HOLDING
       async removeHolding(id) {
-        await API.delete(`/portfolio/${id}`);
+        await API.delete(`/api/portfolio/${id}`);
         dispatch({ type: "REMOVE_HOLDING", payload: { id } });
       },
     };

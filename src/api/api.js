@@ -1,8 +1,10 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL, // backend URL
+  baseURL: `https://wealthwise-investment-backend.onrender.com`, // backend URL
 });
+
+console.log("🙌",API)
 
 // attach token automatically
 API.interceptors.request.use((req) => {

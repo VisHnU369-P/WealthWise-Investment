@@ -4,8 +4,11 @@ import AllocationPie from "./components/AllocationPie.jsx";
 import HoldingsTable from "./components/HoldingsTable.jsx";
 import SummaryCards from "./components/SummaryCards.jsx";
 import { usePortfolio } from "./portfolio/portfolioStore.js";
+import { useAuth } from "./auth/AuthContext.jsx";
+import Login from "./components/Login.jsx";
+import { PortfolioProvider } from "./portfolio/PortfolioProvider.jsx";
 
-function App() {
+function Dashboard() {
   const { clearAll, holdings = [] } = usePortfolio();
 
   return (
@@ -41,6 +44,24 @@ function App() {
         Values and 24h change are mocked locally (no live market data).
       </footer>
     </div>
+  );
+}
+
+function App() {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return null;
+  }
+
+  if (!isAuthenticated) {
+    return <Login />;
+  }
+
+  return (
+    <PortfolioProvider>
+      <Dashboard />
+    </PortfolioProvider>
   );
 }
 
