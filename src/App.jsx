@@ -1,35 +1,47 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import "./App.css";
+import AssetForm from "./components/AssetForm.jsx";
+import AllocationPie from "./components/AllocationPie.jsx";
+import HoldingsTable from "./components/HoldingsTable.jsx";
+import SummaryCards from "./components/SummaryCards.jsx";
+import { usePortfolio } from "./portfolio/portfolioStore.js";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { clearAll, holdings = [] } = usePortfolio();
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div className="appShell">
+      <header className="topbar">
+        <div>
+          <div className="brand">WealthWise</div>
+          <div className="subtitle">Investment Tracker Dashboard</div>
+        </div>
+        <div className="topbarActions">
+          <button
+            className="ghost"
+            onClick={clearAll}
+            disabled={holdings.length === 0}
+          >
+            Clear all
+          </button>
+        </div>
+      </header>
+
+      <main className="layout">
+        <SummaryCards />
+
+        <div className="grid2">
+          <AssetForm />
+          <AllocationPie />
+        </div>
+
+        <HoldingsTable />
+      </main>
+
+      <footer className="footer muted">
+        Values and 24h change are mocked locally (no live market data).
+      </footer>
+    </div>
+  );
 }
 
-export default App
+export default App;
