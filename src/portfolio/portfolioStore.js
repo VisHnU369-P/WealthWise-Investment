@@ -29,7 +29,7 @@ export function initialState() {
     holdings: [
       {
         id: crypto.randomUUID(),
-        type: 'Stocks',
+        type: 'STOCK',
         name: 'AAPL',
         quantity: 5,
         purchasePrice: 185.25,
@@ -38,7 +38,7 @@ export function initialState() {
       },
       {
         id: crypto.randomUUID(),
-        type: 'Crypto',
+        type: 'CRYPTO',
         name: 'BTC',
         quantity: 0.08,
         purchasePrice: 64000,

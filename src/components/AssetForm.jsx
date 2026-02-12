@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react'
 import { usePortfolio } from '../portfolio/portfolioStore.js'
 
-const ASSET_TYPES = ['Stocks', 'Crypto', 'Mutual Funds']
+const ASSET_TYPES = ['STOCK', 'CRYPTO', 'MUTUAL_FUND']
 
 export default function AssetForm() {
   const { addHolding } = usePortfolio()
 
-  const [type, setType] = useState('Stocks')
+  const [type, setType] = useState('STOCK')
   const [name, setName] = useState('')
   const [quantity, setQuantity] = useState('')
   const [purchasePrice, setPurchasePrice] = useState('')

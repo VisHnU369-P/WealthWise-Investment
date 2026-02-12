@@ -2,8 +2,8 @@ import { usePortfolio } from "../portfolio/portfolioStore.js";
 import { formatCurrency, formatPercent } from "./Formatters.js";
 
 function badgeClass(type) {
-  if (type === "Stocks") return "badge blue";
-  if (type === "Crypto") return "badge purple";
+  if (type === "STOCK") return "badge blue";
+  if (type === "CRYPTO") return "badge purple";
   return "badge green";
 }
 
