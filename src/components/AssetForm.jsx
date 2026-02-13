@@ -18,7 +18,7 @@ export default function AssetForm() {
     return String(name).trim().length > 0 && Number.isFinite(qty) && qty > 0 && Number.isFinite(price) && price > 0
   }, [name, quantity, purchasePrice])
 
-  function onSubmit(e) {
+  async function onSubmit(e) {
     e.preventDefault()
     setError('')
 
@@ -27,16 +27,22 @@ export default function AssetForm() {
       return
     }
 
-    addHolding({
-      type,
-      name: name.trim(),
-      quantity: Number(quantity),
-      purchasePrice: Number(purchasePrice),
-    })
+    try {
+      await addHolding({
+        type,
+        name: name.trim(),
+        quantity: Number(quantity),
+        purchasePrice: Number(purchasePrice),
+      })
 
-    setName('')
-    setQuantity('')
-    setPurchasePrice('')
+      // Clear form on success
+      setName('')
+      setQuantity('')
+      setPurchasePrice('')
+    } catch (error) {
+      // Error is already handled by SweetAlert in PortfolioProvider
+      // Just keep the form state as is
+    }
   }
 
   return (

@@ -1,8 +1,8 @@
 import axios from "axios";
 
 const API = axios.create({
-  // baseURL: `https://wealthwise-investment-backend.onrender.com`, // backend URL
-  baseURL: `http://localhost:5005`, // backend URL
+  baseURL: `https://wealthwise-investment-backend.onrender.com`, // backend URL
+  // baseURL: `http://localhost:5005`, // backend URL
 });
 
 console.log("🙌",API)

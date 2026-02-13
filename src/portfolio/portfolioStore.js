@@ -59,18 +59,23 @@ export function initialState() {
 }
 
 export function reducer(state, action) {
+  // Ensure holdings is always an array
+  const currentHoldings = Array.isArray(state.holdings) ? state.holdings : [];
+  
   switch (action.type) {
     case 'ADD_HOLDING': {
-      return { ...state, holdings: [action.payload, ...state.holdings] }
+      return { ...state, holdings: [action.payload, ...currentHoldings] }
     }
     case 'REMOVE_HOLDING': {
-      return { ...state, holdings: state.holdings.filter((h) => h.id !== action.payload.id) }
+      return { ...state, holdings: currentHoldings.filter((h) => h._id !== action.payload._id) }
     }
     case 'CLEAR_ALL': {
       return { ...state, holdings: [] }
     }
     case "SET_HOLDINGS": {
-      return { ...state, holdings: action.payload };
+      // Ensure payload is an array
+      const payload = Array.isArray(action.payload) ? action.payload : [];
+      return { ...state, holdings: payload };
     }
     default:
       return state

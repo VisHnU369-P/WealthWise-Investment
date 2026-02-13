@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useReducer } from "react";
 import API from "../api/api";
 import { PortfolioContext, reducer } from "./portfolioStore";
+import Swal from "sweetalert2";
 
 export function PortfolioProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, { holdings: [] });
@@ -13,28 +14,107 @@ export function PortfolioProvider({ children }) {
   }, []);
 
   async function fetchHoldings() {
-    const res = await API.get("/api/portfolio");
-    dispatch({ type: "SET_HOLDINGS", payload: res.data.data });
+    try {
+      const res = await API.get("/api/portfolio");
+      const holdings = res.data?.data || res.data || [];
+      dispatch({ type: "SET_HOLDINGS", payload: holdings });
+    } catch (error) {
+      console.error("Failed to fetch holdings:", error);
+      // Set empty array on error to prevent crashes
+      dispatch({ type: "SET_HOLDINGS", payload: [] });
+    }
   }
 
   const actions = useMemo(() => {
     return {
       // 2️⃣ ADD HOLDING
       async addHolding(input) {
-        const res = await API.post("/api/portfolio", {
-          assetType: input.type,
-          symbol: input.name,
-          quantity: Number(input.quantity),
-          purchasePrice: Number(input.purchasePrice),
-        });
+        try {
+          const res = await API.post("/api/portfolio", {
+            assetType: input.type,
+            symbol: input.name,
+            quantity: Number(input.quantity),
+            purchasePrice: Number(input.purchasePrice),
+          });
 
-        dispatch({ type: "ADD_HOLDING", payload: res.data });
+          const newHolding = res.data?.data || res.data;
+          if (newHolding) {
+            dispatch({ type: "ADD_HOLDING", payload: newHolding });
+            
+            // Show success message
+            Swal.fire({
+              icon: "success",
+              title: "Asset Added!",
+              text: `${input.name} has been successfully added to your portfolio.`,
+              timer: 2000,
+              showConfirmButton: false,
+            });
+          }
+        } catch (error) {
+          console.error("Failed to add holding:", error);
+          
+          // Show error message with SweetAlert
+          const errorMessage = 
+            error?.response?.data?.message || 
+            error?.message || 
+            "Failed to add asset. Please try again.";
+          
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: errorMessage,
+            confirmButtonText: "OK",
+          });
+          
+          // Re-throw to allow component to handle if needed
+          throw error;
+        }
       },
 
       // 3️⃣ REMOVE HOLDING
-      async removeHolding(id) {
-        await API.delete(`/api/portfolio/${id}`);
-        dispatch({ type: "REMOVE_HOLDING", payload: { id } });
+      async removeHolding(_id) {
+        // Find the holding to show its name in confirmation
+        const holding = state.holdings.find((h) => h._id === _id);
+        const assetName = holding?.symbol || holding?.name || "this asset";
+
+        // Show confirmation dialog
+        const result = await Swal.fire({
+          title: "Remove Asset?",
+          text: `Are you sure you want to remove ${assetName} from your portfolio?`,
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: "Yes, Remove",
+          cancelButtonText: "Cancel",
+          confirmButtonColor: "#d33",
+        });
+
+        if (!result.isConfirmed) {
+          return; // User cancelled
+        }
+
+        try {
+          await API.delete(`/api/portfolio/${_id}`);
+          dispatch({ type: "REMOVE_HOLDING", payload: { _id } });
+          
+          Swal.fire({
+            icon: "success",
+            title: "Asset Removed!",
+            text: `${assetName} has been removed from your portfolio.`,
+            timer: 2000,
+            showConfirmButton: false,
+          });
+        } catch (error) {
+          console.error("Failed to remove holding:", error);
+          
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: error?.response?.data?.message || "Failed to remove asset. Please try again.",
+            confirmButtonText: "OK",
+          });
+          
+          throw error;
+        }
       },
     };
   }, []);
@@ -49,14 +129,24 @@ export function PortfolioProvider({ children }) {
       0,
     );
 
-    const totalBalance = holdings.reduce((sum, h) => sum + h.currentValue, 0);
+    const totalBalance = holdings.reduce((sum, h) => {
+      // Use currentPrice if available, otherwise fall back to currentValue or calculate
+      const currentValue = h.currentPrice 
+        ? h.quantity * h.currentPrice 
+        : (h.currentValue || h.quantity * h.purchasePrice);
+      return sum + currentValue;
+    }, 0);
 
     const change24hAmount = totalBalance - totalCostBasis;
     const change24hPct =
       totalCostBasis > 0 ? change24hAmount / totalCostBasis : 0;
 
     const allocationByType = holdings.reduce((acc, h) => {
-      acc[h.assetType] = (acc[h.assetType] || 0) + h.currentValue;
+      // Use currentPrice if available, otherwise fall back to currentValue or calculate
+      const currentValue = h.currentPrice 
+        ? h.quantity * h.currentPrice 
+        : (h.currentValue || h.quantity * h.purchasePrice);
+      acc[h.assetType] = (acc[h.assetType] || 0) + currentValue;
       return acc;
     }, {});
 

@@ -10,6 +10,7 @@ import { PortfolioProvider } from "./portfolio/PortfolioProvider.jsx";
 
 function Dashboard() {
   const { clearAll, holdings = [] } = usePortfolio();
+  const { logout } = useAuth();
 
   return (
     <div className="appShell">
@@ -25,6 +26,13 @@ function Dashboard() {
             disabled={holdings.length === 0}
           >
             Clear all
+          </button>
+          <button
+            className="ghost"
+            onClick={logout}
+            style={{ marginLeft: "0.5rem" }}
+          >
+            Logout
           </button>
         </div>
       </header>

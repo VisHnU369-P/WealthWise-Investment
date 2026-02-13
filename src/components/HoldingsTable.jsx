@@ -10,6 +10,8 @@ function badgeClass(type) {
 export default function HoldingsTable() {
   const { holdings = [], removeHolding } = usePortfolio();
 
+  console.log("HoldingsTable render: holdings =", holdings);
+
   return (
     <div className="card">
       <div className="cardHeader row">
@@ -26,7 +28,7 @@ export default function HoldingsTable() {
         <table className="table">
           <thead>
             <tr>
-              <th>Asset</th>
+              <th>Symbol</th>
               <th>Type</th>
               <th className="num">Qty</th>
               <th className="num">Purchase</th>
@@ -45,15 +47,15 @@ export default function HoldingsTable() {
             ) : (
               holdings.map((h) => {
                 const costBasis = h.quantity * h.purchasePrice;
-                const value = costBasis * (1 + (h.dailyChangePct || 0));
+                const value = h.currentPrice ? h.quantity * h.currentPrice : costBasis * (1 + (h.dailyChangePct || 0));
                 const pct = h.dailyChangePct || 0;
                 const pctClass = pct >= 0 ? "pos" : "neg";
 
                 return (
-                  <tr key={h.id}>
-                    <td className="assetName">{h.name}</td>
+                  <tr key={h._id}>
+                    <td className="assetName">{h.symbol}</td>
                     <td>
-                      <span className={badgeClass(h.type)}>{h.type}</span>
+                      <span className={badgeClass(h.assetType)}>{h.assetType}</span>
                     </td>
                     <td className="num">
                       {Number(h.quantity).toLocaleString()}
@@ -64,8 +66,8 @@ export default function HoldingsTable() {
                     <td className="actions">
                       <button
                         className="ghost"
-                        onClick={() => removeHolding(h.id)}
-                        aria-label={`Remove ${h.name}`}
+                        onClick={() => removeHolding(h._id)}
+                        aria-label={`Remove ${h.symbol}`}
                       >
                         Remove
                       </button>
