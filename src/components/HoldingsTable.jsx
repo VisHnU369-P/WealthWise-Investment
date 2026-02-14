@@ -1,5 +1,7 @@
+import { useEffect, useState, useMemo } from "react";
 import { usePortfolio } from "../portfolio/portfolioStore.js";
 import { formatCurrency, formatPercent } from "./Formatters.js";
+import API from "../api/api.js";
 
 function badgeClass(type) {
   if (type === "STOCK") return "badge blue";
@@ -9,8 +11,27 @@ function badgeClass(type) {
 
 export default function HoldingsTable() {
   const { holdings = [], removeHolding } = usePortfolio();
+  const [marketPrices, setMarketPrices] = useState({});
 
-  console.log("HoldingsTable render: holdings =", holdings);
+  useEffect(() => {
+    API.get("/api/market/market-data")
+      .then((res) => {
+        const data = Array.isArray(res.data) ? res.data : res.data?.data || [];
+        const map = {};
+        data.forEach((item) => {
+          if (item.symbol && item.currentPrice != null) map[item.symbol] = item.currentPrice;
+        });
+        setMarketPrices(map);
+      })
+      .catch(() => setMarketPrices({}));
+  }, []);
+
+  const holdingsWithPrice = useMemo(() => {
+    return holdings.map((h) => ({
+      ...h,
+      displayCurrentPrice: h.currentPrice ?? marketPrices[h.symbol] ?? h.purchasePrice,
+    }));
+  }, [holdings, marketPrices]);
 
   return (
     <div className="card">
@@ -18,7 +39,7 @@ export default function HoldingsTable() {
         <div>
           <h2>Holdings</h2>
           <p className="muted">
-            Your current positions (mock 24h change per holding).
+            Your current positions with P&L vs. cost basis.
           </p>
         </div>
         <div className="muted small">{holdings.length} assets</div>
@@ -32,24 +53,28 @@ export default function HoldingsTable() {
               <th>Type</th>
               <th className="num">Qty</th>
               <th className="num">Purchase</th>
+              <th className="num">Current Price</th>
               <th className="num">Value</th>
-              <th className="num">24h</th>
+              <th className="num">P&L</th>
+              <th className="num">P&L %</th>
               <th />
             </tr>
           </thead>
           <tbody>
             {holdings.length === 0 ? (
               <tr>
-                <td colSpan={7} className="empty">
+                <td colSpan={9} className="empty">
                   No holdings yet. Add your first asset to get started.
                 </td>
               </tr>
             ) : (
-              holdings.map((h) => {
+              holdingsWithPrice.map((h) => {
                 const costBasis = h.quantity * h.purchasePrice;
-                const value = h.currentPrice ? h.quantity * h.currentPrice : costBasis * (1 + (h.dailyChangePct || 0));
-                const pct = h.dailyChangePct || 0;
-                const pctClass = pct >= 0 ? "pos" : "neg";
+                const currentPricePerShare = h.displayCurrentPrice;
+                const value = h.quantity * currentPricePerShare;
+                const pnlAmount = value - costBasis;
+                const pnlPct = costBasis > 0 ? pnlAmount / costBasis : 0;
+                const pnlClass = pnlAmount >= 0 ? "pos" : "neg";
 
                 return (
                   <tr key={h._id}>
@@ -61,8 +86,10 @@ export default function HoldingsTable() {
                       {Number(h.quantity).toLocaleString()}
                     </td>
                     <td className="num">{formatCurrency(h.purchasePrice)}</td>
+                    <td className="num">{formatCurrency(currentPricePerShare)}</td>
                     <td className="num">{formatCurrency(value)}</td>
-                    <td className={`num ${pctClass}`}>{formatPercent(pct)}</td>
+                    <td className={`num ${pnlClass}`}>{formatCurrency(pnlAmount)}</td>
+                    <td className={`num ${pnlClass}`}>{formatPercent(pnlPct)}</td>
                     <td className="actions">
                       <button
                         className="ghost"

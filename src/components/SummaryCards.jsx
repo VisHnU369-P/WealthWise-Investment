@@ -19,9 +19,9 @@ export default function SummaryCards() {
       </div>
 
       <div className="card stat">
-        <div className="statLabel">24h Change</div>
+        <div className="statLabel">Profit / Loss</div>
         <div className={`statValue ${deltaClass(change24hAmount)}`}>{formatCurrency(change24hAmount)}</div>
-        <div className={`statHint ${deltaClass(change24hPct)}`}>{formatPercent(change24hPct)}</div>
+        <div className={`statHint ${deltaClass(change24hPct)}`}>{formatPercent(change24hPct)} vs. cost basis</div>
       </div>
     </div>
   )

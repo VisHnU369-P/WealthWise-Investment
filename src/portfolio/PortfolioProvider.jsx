@@ -1,16 +1,28 @@
-import { useEffect, useMemo, useReducer } from "react";
+import { useEffect, useMemo, useReducer, useState } from "react";
 import API from "../api/api";
 import { PortfolioContext, reducer } from "./portfolioStore";
 import Swal from "sweetalert2";
 
 export function PortfolioProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, { holdings: [] });
-
-  console.log("😂😂",API)
+  const [marketPrices, setMarketPrices] = useState({});
 
   // 1️⃣ FETCH DATA FROM BACKEND
   useEffect(() => {
     fetchHoldings();
+  }, []);
+
+  useEffect(() => {
+    API.get("/api/market/market-data")
+      .then((res) => {
+        const data = Array.isArray(res.data) ? res.data : res.data?.data || [];
+        const map = {};
+        data.forEach((item) => {
+          if (item.symbol && item.currentPrice != null) map[item.symbol] = item.currentPrice;
+        });
+        setMarketPrices(map);
+      })
+      .catch(() => setMarketPrices({}));
   }, []);
 
   async function fetchHoldings() {
@@ -119,9 +131,8 @@ export function PortfolioProvider({ children }) {
     };
   }, []);
 
-  // 4️⃣ COMPUTED VALUES (same logic, real data)
+  // 4️⃣ COMPUTED VALUES: total value = sum(qty × current price), P&L = total value − cost basis
   const computed = useMemo(() => {
-    // const holdings = state.holdings;
     const holdings = Array.isArray(state.holdings) ? state.holdings : [];
 
     const totalCostBasis = holdings.reduce(
@@ -130,11 +141,8 @@ export function PortfolioProvider({ children }) {
     );
 
     const totalBalance = holdings.reduce((sum, h) => {
-      // Use currentPrice if available, otherwise fall back to currentValue or calculate
-      const currentValue = h.currentPrice 
-        ? h.quantity * h.currentPrice 
-        : (h.currentValue || h.quantity * h.purchasePrice);
-      return sum + currentValue;
+      const currentPrice = h.currentPrice ?? marketPrices[h.symbol] ?? h.purchasePrice;
+      return sum + h.quantity * currentPrice;
     }, 0);
 
     const change24hAmount = totalBalance - totalCostBasis;
@@ -142,10 +150,8 @@ export function PortfolioProvider({ children }) {
       totalCostBasis > 0 ? change24hAmount / totalCostBasis : 0;
 
     const allocationByType = holdings.reduce((acc, h) => {
-      // Use currentPrice if available, otherwise fall back to currentValue or calculate
-      const currentValue = h.currentPrice 
-        ? h.quantity * h.currentPrice 
-        : (h.currentValue || h.quantity * h.purchasePrice);
+      const currentPrice = h.currentPrice ?? marketPrices[h.symbol] ?? h.purchasePrice;
+      const currentValue = h.quantity * currentPrice;
       acc[h.assetType] = (acc[h.assetType] || 0) + currentValue;
       return acc;
     }, {});
@@ -155,7 +161,7 @@ export function PortfolioProvider({ children }) {
     );
 
     return { totalBalance, change24hAmount, change24hPct, allocationData };
-  }, [state.holdings]);
+  }, [state.holdings, marketPrices]);
 
   const value = {
     holdings: state.holdings,

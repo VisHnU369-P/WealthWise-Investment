@@ -3,6 +3,7 @@ import AssetForm from "./components/AssetForm.jsx";
 import AllocationPie from "./components/AllocationPie.jsx";
 import HoldingsTable from "./components/HoldingsTable.jsx";
 import SummaryCards from "./components/SummaryCards.jsx";
+import SymbolLineChart from "./components/SymbolLineChart.jsx";
 import { usePortfolio } from "./portfolio/portfolioStore.js";
 import { useAuth } from "./auth/AuthContext.jsx";
 import Login from "./components/Login.jsx";
@@ -20,13 +21,7 @@ function Dashboard() {
           <div className="subtitle">Investment Tracker Dashboard</div>
         </div>
         <div className="topbarActions">
-          <button
-            className="ghost"
-            onClick={clearAll}
-            disabled={holdings.length === 0}
-          >
-            Clear all
-          </button>
+         
           <button
             className="ghost"
             onClick={logout}
@@ -44,6 +39,8 @@ function Dashboard() {
           <AssetForm />
           <AllocationPie />
         </div>
+
+        <SymbolLineChart />
 
         <HoldingsTable />
       </main>
