@@ -4,27 +4,36 @@ import Swal from "sweetalert2";
 const AuthContext = createContext(null);
 
 const LOGIN_TIME_KEY = "wealthwise_login_time";
+const USER_KEY = "wealthwise_user";
 const SESSION_DURATION = 4 * 60 * 60 * 1000; // 4 hours in milliseconds
 
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(null);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const logoutTimerRef = useRef(null);
 
+  console.log("AuthProvider rendered. Current token:", user);
   useEffect(() => {
     const stored = localStorage.getItem("token");
     const loginTime = localStorage.getItem(LOGIN_TIME_KEY);
+    const storedUser = localStorage.getItem(USER_KEY);
 
     if (stored && loginTime) {
       const timeElapsed = Date.now() - parseInt(loginTime, 10);
       
       // Check if session has expired
       if (timeElapsed >= SESSION_DURATION) {
-        // Session expired, clear everything
         clearAllData();
       } else {
-        // Session still valid, set token and start auto-logout timer
         setToken(stored);
+        if (storedUser) {
+          try {
+            setUser(JSON.parse(storedUser));
+          } catch {
+            setUser(null);
+          }
+        }
         const remainingTime = SESSION_DURATION - timeElapsed;
         startAutoLogoutTimer(remainingTime);
       }
@@ -40,9 +49,9 @@ export function AuthProvider({ children }) {
   }, []);
 
   function clearAllData() {
-    // Clear all localStorage data
     localStorage.clear();
     setToken(null);
+    setUser(null);
     
     // Clear any timers
     if (logoutTimerRef.current) {
@@ -106,13 +115,16 @@ export function AuthProvider({ children }) {
     });
   }
 
-  function login(newToken) {
+  function login(newToken, userData = null) {
     const loginTime = Date.now().toString();
     localStorage.setItem("token", newToken);
     localStorage.setItem(LOGIN_TIME_KEY, loginTime);
+    console.log("Login time set:", newToken, loginTime);
     setToken(newToken);
-    
-    // Start auto-logout timer for 4 hours
+    if (userData) {
+      localStorage.setItem(USER_KEY, JSON.stringify(userData));
+      setUser(userData);
+    }
     startAutoLogoutTimer(SESSION_DURATION);
   }
 
@@ -140,11 +152,15 @@ export function AuthProvider({ children }) {
 
   const value = {
     token,
+    user,
     isAuthenticated: Boolean(token),
+    isAdmin: user?.role === "admin",
     login,
     logout,
     loading,
   };
+
+  console.log("AuthContext value:😀😀", value);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

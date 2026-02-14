@@ -14,8 +14,6 @@ function Login() {
     setSubmitting(true);
     setError("");
 
-    console.log("😀",API)
-
     try {
       // Adjust this endpoint / payload to match your backend
       const res = await API.post("/api/auth/login", {
@@ -23,15 +21,12 @@ function Login() {
         password,
       });
 
-      console.log("the step 1",res)
-
-      const receivedToken = res.data?.token;
-      console.log("😀",receivedToken);
+      const receivedToken = res.data?.token ?? res.data?.data?.token;
       if (!receivedToken) {
         throw new Error("Token not found in response");
       }
-
-      login(receivedToken);
+      const userData = res.data?.user ?? res.data?.data?.user ?? null;
+      login(receivedToken, userData);
     } catch (err) {
       console.error(err);
       setError(

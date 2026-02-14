@@ -16,6 +16,24 @@
   font-size: 22px;
   font-weight: 750;
   letter-spacing: 0.2px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.roleBadge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.roleBadge.admin {
+  background: rgba(168, 85, 247, 0.25);
+  border: 1px solid rgba(168, 85, 247, 0.5);
+  color: #c084fc;
 }
 
 .subtitle {
@@ -232,6 +250,29 @@ button:disabled {
 
 .table tr:hover td {
   background: rgba(255, 255, 255, 0.02);
+}
+
+.holdingsGroupHeader td {
+  background: rgba(168, 85, 247, 0.12);
+  border-top: 1px solid rgba(168, 85, 247, 0.25);
+  border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+  padding: 10px 12px;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.holdingsGroupHeader:hover td {
+  background: rgba(168, 85, 247, 0.12);
+}
+
+.holdingsGroupName {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.userCellGrouped {
+  border-left: 3px solid rgba(168, 85, 247, 0.35);
+  width: 24px;
+  padding-left: 8px !important;
 }
 
 .num {

@@ -11,17 +11,30 @@ import { PortfolioProvider } from "./portfolio/PortfolioProvider.jsx";
 
 function Dashboard() {
   const { clearAll, holdings = [] } = usePortfolio();
-  const { logout } = useAuth();
+  const { logout, isAdmin } = useAuth();
 
   return (
     <div className="appShell">
       <header className="topbar">
         <div>
-          <div className="brand">WealthWise</div>
-          <div className="subtitle">Investment Tracker Dashboard</div>
+          <div className="brand">
+            WealthWise
+            {isAdmin && <span className="roleBadge admin">Admin</span>}
+          </div>
+          <div className="subtitle">
+            {isAdmin ? "Investment Tracker — Admin view (all users)" : "Investment Tracker Dashboard"}
+          </div>
         </div>
         <div className="topbarActions">
-         
+          {!isAdmin && (
+            <button
+              className="ghost"
+              onClick={clearAll}
+              disabled={holdings.length === 0}
+            >
+              Clear all
+            </button>
+          )}
           <button
             className="ghost"
             onClick={logout}
